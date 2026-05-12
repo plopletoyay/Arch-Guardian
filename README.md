@@ -527,7 +527,7 @@ Licensed under the GNU General Public License v3.0.
 SPDX identifier:
 
 ```text id="6jv8ni"
-GPL-3.0
+GNU General Public License v3.0
 ```
 
 ---
