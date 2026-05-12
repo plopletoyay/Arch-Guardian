@@ -1,43 +1,36 @@
-````md id="5i9kq2"
 # `Arch-Guardian`
 
-A security-focused update wrapper and middleware for Arch Linux.
+A security-focused middleware and update safety layer for Arch Linux.
 
 Official repository:
 
 https://github.com/plopletoyay/Arch-Guardian
 
-This project intercepts `sudo pacman -Syu` before the update process continues, searches for related news or advisories about the packages being upgraded, ranks the danger level of the findings, and asks the user whether the update should continue.
+This project analyzes pending system upgrades before they are installed, searches Arch Linux news for package-related warnings or advisories, ranks findings by severity, and asks the user whether the upgrade should continue.
 
-# `Security Wrapper for pacman -Syu`
+# `Security Middleware for pacman Updates`
 
-> This project is not meant to replace `pacman`.
+> This project is not a replacement for `pacman`.
 >
-> It is a security-aware middleware layer that sits between the user and the package manager in order to add an additional verification step before system upgrades.
+> It is a middleware layer designed to improve awareness and safety before running system upgrades on Arch Linux.
 
 ---
 
 # Important Warning
 
-Even though Arch Guardian adds extra safety checks, it still executes real system updates underneath.
-
-This means:
-
-```bash
-sudo pacman -Syu
-````
-
-is still ultimately being used internally.
+Even though Arch Guardian adds extra safety checks, the actual system upgrade still uses the real Arch Linux package manager underneath.
 
 Arch Guardian only adds:
 
-* update interception
-* news/advisory checks
-* package analysis
-* risk sorting
-* confirmation prompts
+- update interception
+- Arch news analysis
+- package inspection
+- advisory detection
+- severity scoring
+- risk sorting
+- confirmation prompts
 
-before the actual update proceeds.
+before the real upgrade proceeds.
 
 You should still understand basic Arch Linux package management before relying on automated update tools.
 
@@ -45,25 +38,51 @@ You should still understand basic Arch Linux package management before relying o
 
 # What this project does
 
-Arch Guardian acts as a protective layer around the normal Arch update workflow.
+Arch Guardian acts as a protective layer around the normal Arch Linux upgrade workflow.
 
-Instead of immediately updating the system, it:
+Instead of immediately upgrading packages, it:
 
-* intercepts the update request
-* checks which packages will be upgraded
-* searches for related news/advisories/warnings
-* analyzes risk severity
-* sorts findings from most dangerous to least dangerous
-* asks the user whether to continue
+- synchronizes package databases
+- checks which packages are about to be upgraded
+- searches Arch Linux news entries
+- detects package-related warnings
+- analyzes risk severity
+- sorts findings from most dangerous to least dangerous
+- asks the user whether to continue
 
-The purpose is to help users avoid blindly updating into:
+The purpose is to help users avoid blindly upgrading into:
 
-* known breakages
-* dangerous package releases
-* unstable updates
-* critical advisories
-* dependency issues
-* or security-related incidents
+- known breakages
+- dangerous package releases
+- dependency problems
+- security advisories
+- unstable transitions
+- manual intervention requirements
+- or critical system-related issues
+
+---
+
+# Real Workflow Behavior
+
+The script internally performs a workflow similar to:
+
+```text id="v2xq9m"
+sudo pacman -Sy
+↓
+Check pending upgrades
+↓
+Analyze Arch Linux news
+↓
+Detect risky package updates
+↓
+Ask user for confirmation
+↓
+sudo pacman -Su
+````
+
+This means the user still uses the normal Arch Linux upgrade workflow.
+
+Arch Guardian simply adds a verification and analysis layer before the actual upgrade happens.
 
 ---
 
@@ -73,39 +92,44 @@ This project can be viewed as multiple things at once:
 
 | Type                       | Meaning                                |
 | -------------------------- | -------------------------------------- |
-| `Update Wrapper`           | Wraps the original update command      |
-| `Pre-flight Check`         | Performs checks before updating        |
+| `Update Wrapper`           | Wraps the upgrade workflow             |
+| `Pre-flight Check`         | Performs checks before upgrading       |
 | `Pre-update Hook`          | Runs logic before package installation |
 | `Middleware`               | Sits between user and pacman           |
-| `Logic Interceptor`        | Intercepts update behavior             |
-| `Automated System Auditor` | Automatically audits update safety     |
+| `Logic Interceptor`        | Intercepts upgrade behavior            |
+| `Automated System Auditor` | Automatically audits upgrade safety    |
 
 ---
 
 # Main Features
 
-## `Pre-update Security Check`
+## `Arch Linux News Analysis`
 
-Before installation begins, Arch Guardian checks for important information related to the update targets.
+Arch Guardian downloads and analyzes the official Arch Linux news feed:
+
+```text id="2gf3wh"
+https://archlinux.org/feeds/news/
+```
+
+This allows the script to detect important upgrade-related announcements automatically.
 
 ---
 
-## `Package-aware Analysis`
+## `Package-aware Detection`
 
-The script does not only check general news.
-It also tries to determine whether the packages being updated are mentioned directly in warnings or advisories.
+The script checks whether packages being upgraded are mentioned directly inside Arch Linux news entries.
 
 Example:
 
-```text
-Updating packages:
+```text id="c9ffna"
+Packages detected:
 - linux
-- mesa
+- systemd
 - openssl
 
 Detected warnings:
-- NVIDIA compatibility issue with linux update
-- OpenSSL advisory detected
+- Kernel-related compatibility issue
+- OpenSSL advisory found
 ```
 
 ---
@@ -116,40 +140,72 @@ Findings are sorted by severity.
 
 Example:
 
-```text
+```text id="6m0b2k"
 [CRITICAL]
-Kernel package may break NVIDIA drivers
+Kernel package may require manual intervention
 
-[MEDIUM]
-Mesa compatibility warning
-
-[LOW]
-Documentation-related notice
+[NOTICE]
+Relevant update for systemd
 ```
 
-This allows the user to immediately focus on the most important risks first.
+Severity detection is currently based on keywords such as:
+
+* `manual intervention`
+* `requires manual`
+* `breaking change`
+* `reinstall`
+* `security`
+* `vulnerability`
+
+Core system packages receive additional weighting during analysis.
+
+Example core packages:
+
+* `linux`
+* `systemd`
+* `glibc`
+* `pacman`
+* `grub`
+* `base`
+
+---
+
+## `Version-aware Matching`
+
+The script attempts to match package versions mentioned in Arch news against:
+
+* currently installed versions
+* pending upgrade versions
+
+This helps reduce unrelated or false-positive warnings.
 
 ---
 
 ## `User Confirmation`
 
-After analysis is complete, the script asks the user whether the update should continue.
+After analysis is complete, the script asks whether the upgrade should continue.
 
 Example:
 
-```text
-Continue with installation? [y/N]
+```text id="5m8h3z"
+CRITICAL RISK! Continue upgrade? (y/N):
 ```
 
-If the user declines, the update stops.
+or:
+
+```text id="t08ys8"
+Proceed with update? (Y/n):
+```
+
+If the user declines, the upgrade is postponed.
 
 ---
 
 # Technical Architecture
 
-Arch Guardian behaves like middleware between the user and pacman.
+Arch Guardian behaves like middleware between the user and the package manager.
 
-```text
+```text id="8p1z6n"
 ┌─────────────┐
 │    User     │
 └──────┬──────┘
@@ -165,7 +221,7 @@ Arch Guardian behaves like middleware between the user and pacman.
 └─────────────┘
 ```
 
-The update request passes through Arch Guardian before reaching the actual package manager.
+The upgrade request passes through Arch Guardian before reaching `pacman`.
 
 ---
 
@@ -173,214 +229,201 @@ The update request passes through Arch Guardian before reaching the actual packa
 
 ## `Python`
 
-The main logic is written in Python.
+The core logic is written in Python.
 
 Python handles:
 
-* command interception
-* package inspection
-* advisory/news analysis
-* severity scoring
-* sorting logic
+* package detection
+* RSS parsing
+* advisory/news inspection
+* severity analysis
+* keyword scoring
+* version matching
 * terminal interaction
-* user confirmation
-* automation flow
+* confirmation handling
+* workflow automation
+
+---
+
+## `feedparser`
+
+Used for parsing the Arch Linux RSS news feed.
+
+---
+
+## `requests`
+
+Used for downloading the RSS feed data.
+
+---
+
+## `subprocess`
+
+Used for interacting with:
+
+* `pacman`
+* system commands
+* update queries
 
 ---
 
 ## `pacman`
 
-Arch Guardian is built around the Arch Linux package management system.
+Arch Guardian integrates directly with the Arch Linux package manager.
 
-It integrates with:
+The script internally uses workflows equivalent to:
 
-```bash
-pacman
+```text id="h7p0gn"
+sudo pacman -Sy
+sudo pacman -Su
 ```
 
-and specifically focuses on protecting workflows related to:
-
-```bash
-sudo pacman -Syu
-```
-
----
-
-## `sudo`
-
-Because system upgrades require elevated privileges, the tool is designed around `sudo`.
-
----
-
-## `Shell Installer`
-
-The project includes:
-
-```text
-install.sh
-```
-
-for automated installation.
+instead of replacing package management entirely.
 
 ---
 
 # Workflow Overview
 
-## Step 1 — User Starts Update
+## Step 1 — Synchronize Databases
 
-Example:
+The script synchronizes package databases.
 
-```bash
-arch-guardian
-```
+Example internal workflow:
 
-or:
-
-```bash
-sudo arch-guardian
+```text id="7n7hqs"
+sudo pacman -Sy
 ```
 
 ---
 
-## Step 2 — Update Interception
+## Step 2 — Detect Pending Upgrades
 
-Arch Guardian captures the update request before package installation begins.
+The script checks upgrade candidates using:
 
----
+```text id="d7p3ul"
+pacman -Qu
+```
 
-## Step 3 — Package Detection
+Example detected packages:
 
-The tool checks which packages are going to be updated.
-
-Example:
-
-```text
-Packages detected:
-- linux
-- mesa
-- openssl
-- systemd
+```text id="x4q5iw"
+linux
+mesa
+openssl
+systemd
 ```
 
 ---
 
-## Step 4 — Advisory / News Search
+## Step 3 — Download Arch News
 
-The script searches for:
-
-* security advisories
-* maintainer warnings
-* Arch Linux news
-* dependency issues
-* unstable releases
-* compatibility warnings
-* known breakages
+Arch Guardian downloads recent entries from the Arch Linux news RSS feed.
 
 ---
 
-## Step 5 — Severity Analysis
+## Step 4 — Analyze Relevant News
 
-Every finding is assigned a risk level.
-
-| Level      | Meaning                      |
-| ---------- | ---------------------------- |
-| `LOW`      | Informational                |
-| `MEDIUM`   | Potential issue              |
-| `CRITICAL` | Serious system/security risk |
+The script checks whether news entries reference packages involved in the upgrade.
 
 ---
 
-## Step 6 — Result Sorting
+## Step 5 — Score Risk Severity
 
-Most dangerous warnings appear first.
+Risk scores increase when keywords such as:
+
+* `manual intervention`
+* `breaking change`
+* `security`
+* `vulnerability`
+
+appear in relevant news entries.
+
+---
+
+## Step 6 — Display Findings
+
+Example output:
+
+```text id="r79k20"
+--- ARCH NEWS ANALYSIS REPORT ---
+
+[CRITICAL] linux (6.14 -> 6.15)
+Info: Action required for linux
+
+News:
+Manual intervention required after kernel upgrade
+
+Link:
+https://archlinux.org/news/
+```
 
 ---
 
 ## Step 7 — User Decision
 
-The user decides whether the update should continue.
+The user decides whether the upgrade should continue.
+
+---
+
+## Step 8 — Continue or Abort
+
+If approved, the script continues the upgrade process.
+
+If rejected, the upgrade is postponed.
 
 ---
 
 # Why This Project Is Useful
 
-## `Prevents Blind Updating`
+## `Prevents Blind Upgrading`
 
-Most users immediately run:
+Most users immediately upgrade without reading Arch Linux news first.
 
-```bash
-sudo pacman -Syu
-```
-
-without checking update-related warnings first.
-
-Arch Guardian adds an inspection layer before installation.
+Arch Guardian automates that checking process.
 
 ---
 
 ## `Improves Security Awareness`
 
-Users can detect security-related advisories before updating.
+Security-related advisories become visible before upgrading.
 
 ---
 
-## `Reduces Unexpected Breakage`
+## `Detects Manual Intervention Warnings`
 
-Important compatibility or dependency issues become visible before installation.
+The script can detect situations where Arch Linux requires manual action before or after upgrading.
+
+---
+
+## `Highlights Dangerous Core Package Updates`
+
+Core system packages receive additional risk weighting.
 
 ---
 
 ## `Adds Human Verification`
 
-The update is not forced automatically.
-The user still decides whether to continue.
-
----
-
-## `Useful for Power Users`
-
-Especially useful for:
-
-* developers
-* advanced Arch users
-* Linux enthusiasts
-* workstation systems
-* testing environments
-* security-focused systems
+The user still controls whether the upgrade proceeds.
 
 ---
 
 # Example Output
 
-```text
-========================================
-       Arch Guardian Security Check
-========================================
+```text id="0a6d7i"
+:: Synchronizing databases...
 
-Checking update targets...
+--- ARCH NEWS ANALYSIS REPORT ---
 
-Packages found:
-- linux
-- mesa
-- openssl
+[CRITICAL] linux (6.14 -> 6.15)
+Info: Action required for linux
 
-Searching advisories...
+News:
+Manual intervention required after kernel upgrade
 
-[CRITICAL]
-linux:
-Potential NVIDIA driver breakage detected
+Link:
+https://archlinux.org/news/
 
-[HIGH]
-openssl:
-Security advisory found
-
-[MEDIUM]
-mesa:
-Compatibility issue reported
-
-========================================
-
-Continue with installation? [y/N]
+CRITICAL RISK! Continue upgrade? (y/N):
 ```
 
 ---
@@ -403,41 +446,27 @@ The repository already handles installer permissions.
 
 # Usage
 
-Run:
+Run the normal Arch Linux upgrade workflow.
+
+Example:
 
 ```bash
-arch-guardian
+sudo pacman -Syu
 ```
 
-or:
-
-```bash
-sudo arch-guardian
-```
-
-The tool will:
-
-* inspect pending updates
-* search for advisories
-* analyze danger levels
-* display findings
-* ask for confirmation
-* continue only if approved
+Arch Guardian intercepts and analyzes the upgrade before package installation continues.
 
 ---
 
 # Example Project Structure
 
-```text
+```text id="u7n5z0"
 Arch-Guardian/
 ├── install.sh
-├── main.py
-├── pacman_wrapper.py
-├── news_checker.py
-├── risk_analyzer.py
-├── config/
+├── arch_guardian.py
+├── README.md
 ├── logs/
-└── README.md
+└── config/
 ```
 
 ---
@@ -447,15 +476,14 @@ Arch-Guardian/
 Possible future upgrades:
 
 * smarter severity scoring
-* more advisory/news sources
+* more advanced version matching
+* additional advisory sources
+* colored terminal reports
 * local caching
-* colored terminal UI
-* configurable policies
-* desktop notifications
+* configurable risk policies
 * rollback suggestions
-* log exporting
-* JSON output mode
-* package-specific rules
+* JSON output support
+* package-specific risk rules
 
 ---
 
@@ -463,19 +491,19 @@ Possible future upgrades:
 
 Arch Guardian follows one main principle:
 
-```text
-"Investigate first. Update safely."
+```text id="g19mxu"
+Investigate first. Upgrade safely.
 ```
 
-System updates are not just downloads.
-They are system modifications that can affect:
+System upgrades are not just downloads.
+They are system-level modifications that can affect:
 
-* stability
-* dependencies
 * security
 * drivers
+* dependencies
+* stability
 * compatibility
-* and entire workflows
+* and entire system workflows
 
 Arch Guardian adds awareness before execution.
 
@@ -485,8 +513,9 @@ Arch Guardian adds awareness before execution.
 
 * This project is designed for Arch-based Linux distributions.
 * It is a middleware layer, not a replacement for `pacman`.
-* Some warning detection logic depends on available advisory/news sources.
-* Always review findings before confirming updates.
+* News analysis currently depends on the Arch Linux RSS feed.
+* Risk scoring is keyword-based.
+* Always review warnings before confirming upgrades.
 * Use at your own risk.
 
 ---
@@ -497,7 +526,7 @@ Licensed under the GNU General Public License v3.0.
 
 SPDX identifier:
 
-```text
+```text id="6jv8ni"
 GPL-3.0
 ```
 
@@ -506,6 +535,3 @@ GPL-3.0
 # Author
 
 Created by `plopletoyay`
-
-```
-```
