@@ -120,9 +120,6 @@ Example:
 [CRITICAL]
 Kernel package may break NVIDIA drivers
 
-[HIGH]
-Security advisory found for openssl
-
 [MEDIUM]
 Mesa compatibility warning
 
@@ -289,7 +286,6 @@ Every finding is assigned a risk level.
 | ---------- | ---------------------------- |
 | `LOW`      | Informational                |
 | `MEDIUM`   | Potential issue              |
-| `HIGH`     | Dangerous update             |
 | `CRITICAL` | Serious system/security risk |
 
 ---
