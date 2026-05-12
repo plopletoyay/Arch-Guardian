@@ -5,6 +5,8 @@ SCRIPT_NAME="arch_guardian.py"
 MARKER_START="# ARCH_GUARDIAN_START"
 MARKER_END="# ARCH_GUARDIAN_END"
 
+DEPENDENCIES=("python" "python-pip")
+
 if [[ "$SHELL" == */zsh ]]; then
     SHELL_RC="$HOME/.zshrc"
 elif [[ "$SHELL" == */bash ]]; then
@@ -29,13 +31,18 @@ do_install() {
         exit 0
     fi
 
-    echo -e "\e[1;34m[*] Installing Arch Guardian...\e[0m"
-    
-    if ! command -v python3 &> /dev/null; then
-        echo -e "\e[1;31m[!] Error: Python3 is not installed.\e[0m"
-        exit 1
-    fi
+    echo -e "\e[1;34m[*] Checking dependencies...\e[0m"
+    for pkg in "${DEPENDENCIES[@]}"; do
+        if ! pacman -Qs "$pkg" > /dev/null; then
+            echo -e "\e[1;33m[!] $pkg is missing. Installing...\e[0m"
+            sudo pacman -S --noconfirm "$pkg"
+        else
+            echo -e "\e[1;32m[+] $pkg is already installed.\e[0m"
+        fi
+    done
 
+    echo -e "\e[1;34m[*] Installing Arch Guardian script...\e[0m"
+    
     mkdir -p "$INSTALL_DIR"
 
     if [ -f "$SCRIPT_NAME" ]; then
