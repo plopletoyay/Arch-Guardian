@@ -1,19 +1,9 @@
 #!/bin/bash
 
-INSTALL_DIR="$HOME/.local/share/arch-guardian"
+INSTALL_DIR="/usr/local/share/arch-guardian"
+BIN_WRAPPER="/usr/local/bin/pacman"
 SCRIPT_NAME="arch_guardian.py"
-MARKER_START="# ARCH_GUARDIAN_START"
-MARKER_END="# ARCH_GUARDIAN_END"
-
 DEPENDENCIES=("python" "python-pip")
-
-if [[ "$SHELL" == */zsh ]]; then
-    SHELL_RC="$HOME/.zshrc"
-elif [[ "$SHELL" == */bash ]]; then
-    SHELL_RC="$HOME/.bashrc"
-else
-    SHELL_RC="$HOME/.bashrc"
-fi
 
 do_install() {
     clear
@@ -33,35 +23,34 @@ do_install() {
 
     echo -e "\e[1;34m[*] Checking dependencies...\e[0m"
     for pkg in "${DEPENDENCIES[@]}"; do
-        if ! pacman -Qs "$pkg" > /dev/null; then
+        if ! /usr/bin/pacman -Qs "$pkg" > /dev/null; then
             echo -e "\e[1;33m[!] $pkg is missing. Installing...\e[0m"
-            sudo pacman -S --noconfirm "$pkg"
+            sudo /usr/bin/pacman -S --noconfirm "$pkg"
         else
             echo -e "\e[1;32m[+] $pkg is already installed.\e[0m"
         fi
     done
 
-    echo -e "\e[1;34m[*] Installing Arch Guardian script...\e[0m"
-    
-    mkdir -p "$INSTALL_DIR"
-
+    echo -e "\e[1;34m[*] Installing Arch Guardian core...\e[0m"
+    sudo mkdir -p "$INSTALL_DIR"
     if [ -f "$SCRIPT_NAME" ]; then
-        cp "$SCRIPT_NAME" "$INSTALL_DIR/"
-        chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
+        sudo cp "$SCRIPT_NAME" "$INSTALL_DIR/"
+        sudo chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
     else
         echo -e "\e[1;31m[!] Error: $SCRIPT_NAME not found in current directory.\e[0m"
         exit 1
     fi
 
-    sed -i "/$MARKER_START/,/$MARKER_END/d" "$SHELL_RC"
-
-    cat << EOF >> "$SHELL_RC"
-$MARKER_START
-alias pacman_check='python3 $INSTALL_DIR/$SCRIPT_NAME'
-alias sudo='sudo '
-alias pacman='pacman_check'
-$MARKER_END
-EOF
+    echo -e "\e[1;34m[*] Creating system wrapper...\e[0m"
+    sudo bash -c "cat << 'EOF' > $BIN_WRAPPER
+#!/bin/bash
+if [[ \"\$*\" == *\"-S\"*\"y\"*\"u\"* ]] || [[ \"\$*\" == *\"-Syu\"* ]]; then
+    python3 $INSTALL_DIR/$SCRIPT_NAME \"\$@\"
+else
+    exec /usr/bin/pacman \"\$@\"
+fi
+EOF"
+    sudo chmod +x "$BIN_WRAPPER"
 
     clear
     echo -e "\e[1;92m✔ Installation Successful!\e[0m"
@@ -88,14 +77,8 @@ do_remove() {
     fi
 
     echo -e "\e[1;34m[*] Removing Arch Guardian...\e[0m"
-
-    if [ -f "$SHELL_RC" ]; then
-        sed -i "/$MARKER_START/,/$MARKER_END/d" "$SHELL_RC"
-    fi
-
-    if [ -d "$INSTALL_DIR" ]; then
-        rm -rf "$INSTALL_DIR"
-    fi
+    sudo rm -f "$BIN_WRAPPER"
+    sudo rm -rf "$INSTALL_DIR"
 
     clear
     echo -e "\e[1;92m✔ Uninstallation Successful!\e[0m"
@@ -106,8 +89,7 @@ do_remove() {
 }
 
 clear
-echo -e "\e[1;92m--- Arch Guardian Management ---\e[0m"
-echo -e "Target Shell: $SHELL_RC"
+echo -e "\e[1;92m--- Arch Guardian Management (System-wide) ---\e[0m"
 echo -e "1) Install"
 echo -e "2) Remove"
 echo -e "3) Exit"
