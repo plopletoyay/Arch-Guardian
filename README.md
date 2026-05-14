@@ -535,3 +535,4 @@ GNU General Public License v3.0
 # Author
 
 Created by `plopletoyay`
+"Keep It Simple, Stupid."
